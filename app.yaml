@@ -1,0 +1,23 @@
+application: acm
+version: 1
+runtime: python
+api_version: 1
+
+
+handlers:
+- url: /world.*
+  script: helloworld.py
+
+
+- url: /admin/.*
+  script: $PYTHON_LIB/apphosting/ext/admin/
+
+- url: /favicon.ico
+  static_files: cccwiki/static/favicon.ico
+  upload: cccwiki/static/favicon.ico
+
+- url: /static
+  static_dir: cccwiki/static
+
+- url: /.*
+  script: cccwiki/wiki.py
