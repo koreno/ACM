@@ -12,7 +12,7 @@ import acm.constants as constants
 
 
 class System(Model):
-    name = db.Category(choices=(constants.SYSTEM_TYPE.all))
+    name = db.CategoryProperty(choices=(constants.SYSTEM_TYPE.all))
 
 
 
@@ -25,7 +25,7 @@ class Authentication(Model):
 
 
 
-class RegionID(Model):
+class Region(Model):
 
     region_name = db.StringProperty()
 
@@ -82,10 +82,6 @@ class Bid(Model):
     #bidID = UserID
     amount = db.IntegerProperty()
 
-    # Extra Free bid of 1 point for for users that posted arguments/rebuttal
-    # This seems redundant - could be calculated (max(1, BidAmounts) for all argument-submitters)
-    is_free = db.BooleanProperty()
-
 
 
 class Proposition(Model):
@@ -139,7 +135,7 @@ class SupportingArgument(ArgumentBase):
 class OpposingArgument(ArgumentBase):
     PARENT = "Proposition"
 
-class Rebuttal(ArgumentBase):
+class RebuttalArgument(ArgumentBase):
     PARENT = "(SupportingArgument,OpposingArgument)"
 
 
@@ -170,7 +166,7 @@ class EventBase(PolyModel):
 class PaperEvent(EventBase):
     PARENT = "Paper"
     INITIATING_ACTIONS = (
-              ("created",    dict(by_user="submitter", related_to="bidders")),
+              ("created",    dict(by_user="submitter")),
               ("edited",     dict(by_user="submitter")),
               ("finalized",  dict(by_user="submitter", related_to="bidders")),
               ("dropped",    dict(by_user="submitter", related_to="bidders")),

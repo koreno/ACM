@@ -6,5 +6,5 @@ class MainPage(webapp.RequestHandler):
     
     def get(self, what=None):
         self.response.headers['Content-Type'] = 'text/plain'
-        self.response.out.write('Hello, webapp %s!' % (what or "World"))
+        self.response.out.write('Unrecognized resource: %s' % what)
 

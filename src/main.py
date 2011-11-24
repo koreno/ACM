@@ -1,24 +1,20 @@
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp.util import run_wsgi_app
-from acm.viewes import MainPage
+import jinja2
+import os
 
+jinja_environment = jinja2.Environment(
+    loader = jinja2.FileSystemLoader(os.path.dirname(__file__)))
+
+
+import webapp2
+from acm.viewes import MainPage
+from acm.resources import RESTResource
 
 DEBUG = True
 
 
-urls_patterns = [
+urls_patterns = [r.makeRouter() for r in RESTResource.ALL_RESOURCES] + [ 
+                     ('/(.*)',   MainPage),
+                ]
 
-        ('/(.*)',   MainPage),
+application = webapp2.WSGIApplication(urls_patterns, debug=DEBUG)
 
-        ]
-
-
-
-application = webapp.WSGIApplication(urls_patterns, debug=DEBUG)
-
-
-def main():
-    run_wsgi_app(application)
-
-if __name__ == "__main__":
-    main()
