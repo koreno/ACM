@@ -12,7 +12,7 @@ from acm.resources import RESTResource
 DEBUG = True
 
 
-urls_patterns = [r.makeRouter() for r in RESTResource.ALL_RESOURCES] + [ 
+urls_patterns = RESTResource.ALL_ROUTES + [ 
                      ('/(.*)',   MainPage),
                 ]
 

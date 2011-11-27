@@ -3,13 +3,41 @@ import inspect
 
 
 import google.appengine.ext.db as db
-from google.appengine.ext.db import Model
+from google.appengine.ext.db import Model as _Model
 from google.appengine.ext.db.polymodel import PolyModel
 
 import acm.constants as constants
 
 
+class ACMModelException(Exception): pass
+class ForbiddenException(ACMModelException): pass
 
+
+class Model(_Model):
+    AUTO_CREATE = False
+    PARENT = None
+
+    @classmethod
+    def find_parent(cls, **key_names):
+        if not cls.PARENT:
+            return
+        for parent_model in cls.PARENT:
+            key_name = key_names[parent_model.kind().lower()]
+            key = db.Key.from_path(parent_model.kind(),
+                                   key_name,
+                                   parent = parent_model.find_parent(**key_names))
+            if key:
+                break
+            elif parent_model.AUTO_CREATE:
+                key = parent_model(key_name).key()
+        else:
+            raise Exception("Could not find %s from %s" % (cls.PARENT, key_names))
+        return key
+
+    def __str__(self):
+        return "{0.__class__.__name__}({1},{2})".format(self, 
+                                                        self.key().id_or_name(), 
+                                                        self.parent_key().id_or_name())
 
 class System(Model):
     name = db.CategoryProperty(choices=(constants.SYSTEM_TYPE.all))
@@ -32,6 +60,7 @@ class Region(Model):
 
 
 class Domain(Model):
+    AUTO_CREATE = True
     regions = db.ListProperty(db.Key)
 
 
@@ -73,6 +102,11 @@ class Paper(Model):
     certainty   = db.FloatProperty()    # (redundant) statistical certainty of the results
     status      = db.CategoryProperty(choices = (constants.PAPER_STATUS.all))
 
+
+    def create_proposition(self):
+        if self.status is not constants.PAPER_STATUS.DRAFT:
+            raise ForbiddenException("Can't modify paper at current state: %s" % self.status)
+        return Proposition(parent=self.paper)
 
 
 class Bid(Model):
@@ -215,6 +249,8 @@ class CommentEvent(EventBase):
               ("dropped",    dict(by_user="submitter")),
               ("mention",    dict(by_user="submitter", related_to="mentioned_user")),
             )
+
+
 
 class Notification(Model):
     PARENT = "User"
